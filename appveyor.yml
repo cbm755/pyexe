@@ -41,6 +41,8 @@ build_script:
   - "python install_python.py %INSTALL_OPTIONS% --out=%PYTHON% --force"
   - del /S /Q %PYTHON%\*.pyc >NUL
   - del /S /Q %PYTHON%\*.pyo >NUL
+  # Pre-compress the python dll
+  - "c:\\u\\upx394w\\upx --lzma %PYTHON%\\*.dll || ver>NUL"
   # Use the specific python version for building
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%ORIGPATH%"
   - python -m pip install --upgrade pip
@@ -65,17 +67,17 @@ build_script:
   - del /S /Q %PYTHON%\*.pyo >NUL
   # Save the artifact immediately
   - appveyor PushArtifact pyexe.py
-  - "python -m PyInstaller --onefile pyexe.py --upx-dir C:\\u\\upx394w\\upx.exe --exclude-module FixTk --exclude-module tcl --exclude-module tk --exclude-module _tkinter --exclude-module tkinter --exclude-module Tkinter --runtime-hook hooks\\rth_subprocess.py --icon %PYTHON%\\pythonw.exe"
+  - "python -m PyInstaller --onefile pyexe.py --upx-dir C:\\u\\upx394w --exclude-module FixTk --exclude-module tcl --exclude-module tk --exclude-module _tkinter --exclude-module tkinter --exclude-module Tkinter --runtime-hook hooks\\rth_subprocess.py --icon %PYTHON%\\pythonw.exe"
   - cp dist\pyexe.exe %OUTPUT%
   # Save the artifact immediately
   - appveyor PushArtifact %OUTPUT%
 
 test_script:
+  - SET PATH=%ORIGPATH%
   # Report version
   - "%OUTPUT% -VV"
   # Sometimes we send test data to this directory
   - mkdir c:\temp
-  - SET PATH=%ORIGPATH%
   - pip install pytest
   - cd tests
   # Build a zipapp for our tests; it doesn't exist before 3.5, our we could use
